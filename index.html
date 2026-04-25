@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thông báo Duy Tân</title>
+    <link rel="icon" href="logoo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap');
+        body, html { 
+            height: 100%; margin: 0; padding: 0; overflow: hidden;
+            font-family: 'Lexend', sans-serif; background-color: #f0fdf4; 
+        }
+        .main-wrapper {
+            height: 100vh; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box;
+        }
+        @media (min-width: 1024px) {
+            .main-wrapper { flex-direction: row; padding: 30px; gap: 30px; align-items: stretch; }
+        }
+        .column-half { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+        .input-card { display: flex; flex-direction: column; height: 100%; max-height: 88vh; }
+        canvas { 
+            max-height: 48vh; width: 100%; height: auto !important; aspect-ratio: 1/1;
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); object-fit: contain;
+        }
+        @media (min-width: 1024px) { canvas { max-height: 88vh; } }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper justify-center">
+        <div class="column-half">
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-green-100 input-card">
+                <div class="flex justify-between items-center border-b border-green-100 pb-3 mb-4">
+                    <div class="flex-1 flex justify-center ml-16">
+                        <h1 class="text-base font-bold text-slate-800 flex items-center gap-2">🌿 Thông báo Duy Tân</h1>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="pasteText()" class="text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full hover:bg-blue-600 hover:text-white transition-all">📋 DÁN</button>
+                        <button onclick="clearAll()" class="text-[10px] font-bold bg-red-50 text-red-500 px-3 py-1.5 rounded-full hover:bg-red-600 hover:text-white transition-all">🗑️ XÓA</button>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col gap-3 min-height-0">
+                    <input type="text" id="titleInput" value="Thông báo" autocomplete="off" 
+                        class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-green-500 font-bold text-sm text-black">
+                    
+                    <textarea id="contentInput" autocomplete="off"
+                        class="flex-1 w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-green-500 resize-none text-xs text-black" 
+                        placeholder="Nhập nội dung và nhấn Enter để xuống dòng..."></textarea>
+                    
+                    <div class="flex justify-between items-center text-[11px] font-bold">
+                        <div class="flex gap-4">
+                            <span id="charCount" class="text-green-600 transition-all">0/600 Ký tự</span>
+                            <span id="wordCount" class="text-blue-500">0 Từ</span>
+                        </div>
+                        <div id="status" class="text-green-600 opacity-0 transition-opacity">Thành công!</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="copyImage()" class="bg-slate-800 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md hover:bg-black transition-all">🖼️ COPY ẢNH</button>
+                        <button onclick="downloadImage()" class="bg-green-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md hover:bg-green-700 transition-all">📥 TẢI VỀ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column-half flex items-center justify-center pt-2 lg:pt-0">
+            <canvas id="myCanvas" width="1000" height="1000"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const titleInput = document.getElementById('titleInput');
+        const contentInput = document.getElementById('contentInput');
+        const charCountDisp = document.getElementById('charCount');
+        const wordCountDisp = document.getElementById('wordCount');
+        const WATERMARK_TEXT = "https://t.me/Dai_Hoc_Duy_Tan";
+
+        function clearAll() { 
+            titleInput.value = "Thông báo"; contentInput.value = ""; draw(); 
+        }
+
+        async function pasteText() {
+            try {
+                const text = await navigator.clipboard.readText();
+                contentInput.value = text; draw();
+            } catch (err) { alert("Hãy cấp quyền Clipboard để dán!"); }
+        }
+
+        function draw() {
+            const text = contentInput.value;
+            const limit = 600;
+            charCountDisp.innerText = `${text.length}/${limit} Ký tự`;
+            charCountDisp.className = text.length > limit ? "text-red-600 font-black scale-105" : "text-green-600 font-bold";
+            const wordsArr = text.trim().split(/\s+/);
+            wordCountDisp.innerText = `${text.trim() === "" ? 0 : wordsArr.length} Từ`;
+
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "#f0fdf4";
+            for(let i=0; i<canvas.width; i+=40) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            const pX = 60, pY = 120, pW = 880, pH = 760;
+            ctx.save();
+            ctx.shadowBlur = 40; ctx.shadowColor = "rgba(0,0,0,0.05)";
+            ctx.fillStyle = "white"; ctx.fillRect(pX, pY, pW, pH);
+            ctx.restore();
+
+            ctx.save();
+            ctx.globalAlpha = 0.15; ctx.rotate(-30 * Math.PI / 180);
+            ctx.font = "bold 24px Arial"; ctx.fillStyle = "#059669";
+            for (let i = -1200; i < 1800; i += 360) { 
+                for (let j = -1200; j < 1800; j += 50) { ctx.fillText(WATERMARK_TEXT, i, j); }
+            }
+            ctx.restore();
+
+            ctx.textAlign = "center"; ctx.fillStyle = "#0f172a";
+            ctx.font = "bold 50px Arial"; 
+            ctx.fillText(titleInput.value, canvas.width/2, pY + 100);
+
+            ctx.fillStyle = "#dc2626";
+            let fontSize = 42; let lineHeight = 55;
+            if (text.length > 150) { fontSize = 32; lineHeight = 42; }
+            if (text.length > 400) { fontSize = 24; lineHeight = 32; }
+            if (text.length > 800) { fontSize = 18; lineHeight = 24; }
+            ctx.font = `bold ${fontSize}px Arial`;
+
+            const paragraphs = text.split('\n');
+            let currentY = pY + 180;
+            const maxWidth = 800;
+            const safetyBottom = pY + pH - 40;
+
+            paragraphs.forEach(para => {
+                currentY = smartWrapText(ctx, para, canvas.width/2, currentY, maxWidth, lineHeight, safetyBottom);
+            });
+
+            ctx.fillStyle = "#059669";
+            ctx.fillRect(0, 0, canvas.width, 70); ctx.fillRect(0, 930, canvas.width, 70);
+            ctx.fillStyle = "white"; ctx.font = "bold 34px Arial";
+            ctx.fillText("🎓 DTU Official Community 🌿", canvas.width/2, 48);
+            ctx.font = "24px Arial"; ctx.fillText(WATERMARK_TEXT, canvas.width/2, 975);
+            ctx.fillStyle = "#065f46";
+            ctx.beginPath(); ctx.arc(canvas.width/2, 125, 18, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function smartWrapText(context, text, x, y, maxWidth, lineHeight, safetyBottom) {
+            if (text.trim() === "" && text.length === 0) return y + lineHeight; 
+            if (text.trim() === "" && text.length > 0) return y + lineHeight;
+
+            const words = text.split(/\s+/);
+            let lines = [];
+            let currentLine = '';
+
+            for (let i = 0; i < words.length; i++) {
+                let word = words[i];
+                let testLine = currentLine + (currentLine === '' ? '' : ' ') + word;
+                if (context.measureText(testLine).width <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine !== '') lines.push(currentLine);
+                    currentLine = '';
+                    let chars = word.split('');
+                    let tempLine = '';
+                    for (let j = 0; j < chars.length; j++) {
+                        let testCharLine = tempLine + chars[j];
+                        if (context.measureText(testCharLine).width <= maxWidth) {
+                            tempLine = testCharLine;
+                        } else {
+                            lines.push(tempLine);
+                            tempLine = chars[j];
+                        }
+                    }
+                    currentLine = tempLine;
+                }
+            }
+            if (currentLine !== '') lines.push(currentLine);
+
+            for (let k = 0; k < lines.length; k++) {
+                if (y > safetyBottom) break;
+                context.fillText(lines[k], x, y);
+                y += lineHeight;
+            }
+            return y;
+        }
+
+        async function copyImage() {
+            canvas.toBlob(async (blob) => {
+                const data = [new ClipboardItem({ [blob.type]: blob })];
+                await navigator.clipboard.write(data);
+                const s = document.getElementById('status'); s.style.opacity = "1";
+                setTimeout(() => s.style.opacity = "0", 1500);
+            });
+        }
+        function downloadImage() {
+            const link = document.createElement('a'); link.download = 'dtu_master.png';
+            link.href = canvas.toDataURL(); link.click();
+        }
+        titleInput.addEventListener('input', draw);
+        contentInput.addEventListener('input', draw);
+        window.onload = draw;
+    </script>
+</body>
+</html>
